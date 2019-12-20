@@ -61,14 +61,14 @@ GM_state <- function(cds){
 diff_test_res <- differentialGeneTest(FibroMono[marker_genes,],
                                       fullModelFormulaStr = "~sm.ns(Pseudotime)")
 sig_gene_names <- row.names(subset(diff_test_res, qval < 0.1))
-FibroMono_myo <- orderCells(FibroMono_myo, root_state = GM_state(FibroMono_myo))
+FibroMono <- orderCells(FibroMono, root_state = GM_state(FibroMono))
 
 ###PLOT####
 png(filename="TrajectorybyPSEUDOTIME.png")
-plot_cell_trajectory(FibroMono_myo, color_by = "Pseudotime")
+plot_cell_trajectory(FibroMono, color_by = "Pseudotime")
 dev.off()
 png(filename="PSEUDOTIMEHEATMAP.png")
-plot_pseudotime_heatmap(FibroMono_myo[sig_gene_names,],
+plot_pseudotime_heatmap(FibroMono[sig_gene_names,],
                         num_clusters = 3,
                         cores = 1,
                         show_rownames = T)
