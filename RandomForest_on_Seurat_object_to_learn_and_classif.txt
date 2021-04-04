@@ -1,0 +1,31 @@
+library(Seurat)
+library(dplyr)
+library(cowplot)
+library(DoubletFinder)
+library(future)
+library(randomForest)
+require(caTools)
+
+test1<-readRDS("YOUR RDS FILE")
+
+data<-GetAssayData(object = test1, slot = "data")
+test1$cluster<-test1@active.ident
+meta<-test1@meta.data
+meta$id<-rownames(meta)
+dataT<-t(as.matrix(data))
+dataT<-as.data.frame(dataT)
+dataT$id<-rownames(dataT)
+keep<-c("id","cluster")
+meta2<-meta[,names(meta)%in%keep]
+meta2<-left_join(dataT,meta2,by="id")
+meta2$cluster<-as.factor(meta2$cluster)
+meta2<-meta2[ , -which(names(meta2) %in% c("id"))]
+colnames(meta2)<-str_replace_all(colnames(meta2),"-",".")
+colnames(meta2)<-str_replace_all(colnames(meta2),":",".")
+sample = sample.split(meta2$cluster, SplitRatio = .75)
+train = subset(meta2, sample == TRUE)
+test  = subset(meta2, sample == FALSE)
+ncol<-ncol(meta2)-1
+rf <- randomForest(cluster ~.,data=train,ntree=100,mtry=sqrt(ncol))
+pred = predict(rf, newdata=test[-ncol(test)])
+cm = table(test[,ncol(test)], pred)
